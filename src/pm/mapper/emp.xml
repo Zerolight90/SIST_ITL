@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="emp">
+
+    <!-- Mydialog로 검색하는 기능-->
+
+
+    <!-- 부서 검색하는 기능-->
+    <select id="dept_all" resultType="pm.vo.DeptVO">
+        SELECT * FROM dept ORDER BY deptno ASC
+    </select>
+
+    <select id="search_deptno" resultType="pm.vo.EmpVO" parameterType="Map">
+        select * from emp e inner join dept d on e.deptno = d.deptno
+        where d.deptno in
+        <foreach collection="dept_list"  item="dno" open="(" close=")" separator="," >
+            #{dno}
+        </foreach>
+
+    </select>
+
+</mapper>

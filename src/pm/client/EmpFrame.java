@@ -2,20 +2,21 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-package am;
+package pm.client;
 
-import am.vo.EmpVO;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import pm.vo.DeptVO;
+import pm.vo.EmpVO;
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,7 @@ import java.util.Map;
  *
  * @author 100
  */
-public class EmpFrame extends javax.swing.JFrame {
+public class EmpFrame extends JFrame {
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(EmpFrame.class.getName());
 
@@ -33,6 +34,7 @@ public class EmpFrame extends javax.swing.JFrame {
 
     SqlSessionFactory factory;
     List<EmpVO> list;
+    List<DeptVO> depts;
     int i;
 
     public EmpFrame() {
@@ -54,23 +56,35 @@ public class EmpFrame extends javax.swing.JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // 검색 버튼을 누를 때 수행함!
-                String start = jTextField1.getText().trim();
-                String end = jTextField2.getText().trim();
-                if(start.length() > 0 && end.length() > 0){
-                    // mapper(emp.xml)에 search_date를 호출하기 위해
-                    // 지정된 파라미터 객체(parameterType)인 Map을 생성
-                    Map<String, String> map = new HashMap<>(); // Map 생성
-                    map.put("start", start);
-                    map.put("end", end);
+                ArrayList<String> dept_list = new ArrayList<>();
+                //위의 List에 Map에 dept_list라킄 키로 저장될 객체다.
 
-                    SqlSession ss = factory.openSession();
-                    list = ss.selectList("emp.search_date", map); // 호출하면서 map 전달
-                    ss.close();
-                    viewTable(list);
-                }else {
-                    JOptionPane.showMessageDialog(EmpFrame.this, "날짜를 모두 입력하세요");
-                }
-            }
+                //사용자가선택한 checkbox가 무엇인지 알아 내자
+                for (JCheckBox box : chk_ar){
+                    if (box.isSelected()) {//선택되었다면 true , 안됐다면 false
+                        //선택된 체크박스의 문자열
+                        String str = box.getText();
+//                        System.out.println(str);
+                        //str을 depts라는 List에서 DeptVO를 대상으로 찾아낸다.
+                        // 부서코드를 dept_list에 저장
+                        for (DeptVO dvo : depts){
+                            if(dvo.getDname().equalsIgnoreCase(str)){
+                                dept_list.add(dvo.getDeptno());
+                                break;
+
+                            }
+                        }
+                    }
+                }// for의 끝
+                System.out.println(dept_list);
+                Map<String, ArrayList<String>> map = new HashMap<>();
+                map.put("dept_list",dept_list);
+
+                SqlSession ss = factory.openSession();
+                List<EmpVO> list = ss.selectList("emp.search_deptno", map);
+
+                viewTable(list);
+              }
         });
 
         jTable1.addMouseListener(new MouseAdapter() {
@@ -93,7 +107,7 @@ public class EmpFrame extends javax.swing.JFrame {
 
     private void init() {
         try {
-            Reader r = Resources.getResourceAsReader("am/config/conf.xml");
+            Reader r = Resources.getResourceAsReader("pm/config/conf.xml");
 
             factory = new SqlSessionFactoryBuilder().build(r);
             r.close();
@@ -106,9 +120,21 @@ public class EmpFrame extends javax.swing.JFrame {
 
     private void allData() {
         SqlSession ss = factory.openSession();
-        list = ss.selectList("emp.all_data");
-        viewTable(list);
+        depts = ss.selectList("emp.dept_all");
+        viewDept();
         ss.close();
+    }
+
+    private void viewDept(){
+        //맴버변수인 depts의 길이 만큼 chk_ar이라는 배열을 생성
+        chk_ar = new JCheckBox[depts.size()];
+        // 아직 JCheckVBox가 만들어 지지 않았따.
+        int i = 0;
+        for (DeptVO dvo : depts){
+            chk_ar[i] = new JCheckBox(dvo.getDname());
+            jPanel1.add(chk_ar[i]);
+            i++;
+        }
     }
 
     private void viewTable(List<EmpVO> list) {
@@ -135,46 +161,34 @@ public class EmpFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        jPanel1 = new JPanel();
+        jLabel1 = new JLabel();
 
-        jLabel1.setText("시작일:");
+        jButton1 = new JButton();
+        jScrollPane1 = new JScrollPane();
+        jTable1 = new JTable();
+
+        jLabel1.setText("부서검색:");
         jPanel1.add(jLabel1);
 
-        jTextField1.setColumns(8);
-        jPanel1.add(jTextField1);
 
-        jLabel2.setText("     ");
-        jPanel1.add(jLabel2);
 
-        jLabel3.setText("종료일:");
-        jPanel1.add(jLabel3);
-
-        jTextField2.setColumns(8);
-        jPanel1.add(jTextField2);
 
         ImageIcon icon = new ImageIcon("src/images/Search.png");
         Image img = icon.getImage().getScaledInstance(21, 21, Image.SCALE_SMOOTH);
         jButton1.setIcon(new ImageIcon(img));
-        jButton1.setPreferredSize(new java.awt.Dimension(21, 21));
+        jButton1.setPreferredSize(new Dimension(21, 21));
 //        jButton1.setBorder(new BevelBorder(BevelBorder.RAISED));
         jButton1.setBorder(BorderFactory.createLineBorder(Color.green, 1)); // 버튼의 효과 추가
         jPanel1.add(jButton1);
 
-        getContentPane().add(jPanel1, java.awt.BorderLayout.PAGE_START);
+        getContentPane().add(jPanel1, BorderLayout.PAGE_START);
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        jTable1.setModel(new DefaultTableModel(
                 data, c_name));
         jScrollPane1.setViewportView(jTable1);
 
-        getContentPane().add(jScrollPane1, java.awt.BorderLayout.CENTER);
+        getContentPane().add(jScrollPane1, BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -189,31 +203,29 @@ public class EmpFrame extends javax.swing.JFrame {
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
             }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ReflectiveOperationException | UnsupportedLookAndFeelException ex) {
             logger.log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new EmpFrame().setVisible(true));
+        EventQueue.invokeLater(() -> new EmpFrame().setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
+    private JButton jButton1;
+    private JLabel jLabel1;
+    private  JCheckBox[] chk_ar; //부서 수만큼 만들기 위해 배열로 준비
+    private JPanel jPanel1;
+    private JScrollPane jScrollPane1;
+    private JTable jTable1;
+
 
     public void updateData(EmpVO vo) {
         SqlSession ss = factory.openSession();
