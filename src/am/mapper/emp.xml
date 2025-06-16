@@ -13,4 +13,11 @@
         WHERE hiredate &gt;= #{start} and hiredate &lt;= #{end}
     </select>
 
+    <update id="edit" parameterType="am.vo.EmpVO">
+        UPDATE emp
+        SET ename = #{ename}, job = #{job}, hiredate = #{hiredate}, sal = #{sal}, comm = #{comm}
+        WHERE empno = #{empno}
+
+    </update>
+
 </mapper>

@@ -11,6 +11,7 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
@@ -29,102 +30,122 @@ public class EmpFrame extends JFrame {
 
     String[][] data;
     String[] c_name = {"사번", "이름", "입사일", "급여", "부서명"};
-
-    SqlSessionFactory factory;
+    SqlSessionFactory factory; // 얘가 만들어져야 sqlSession을 연결할 수 있음
     List<EmpVO> list;
 
-
     public EmpFrame() {
+        initComponents(); //화면구성
 
-        initComponents();
-        init(); //db연결
+        //DB연결
+        init();
+
+        //전체데이터를 보는 함수를 선언
         allData();
 
-        this.addWindowFocusListener(new WindowAdapter() {
+        //이벤트 감지자 등록
+        this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                System.exit(0);
+                System.exit(0); //프로그램 종료
             }
         });
 
         jButton1.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                //검색 버튼을 누를 때 수행함!
                 String start = jTextField1.getText().trim();
-                String end = jTextField2.getText().trim();
-                if (start.length()>0 && end.length()>0){
-                    //mapper에 search_date를 호출하기 위해 지정된 파라미터 객체(parameterType)인 map을 생성
-                    Map<String, String> map = new HashMap<>();
-                    map.put("start", start);
+                String end = jTextField1.getText().trim();
+                if(start.length() > 0 && end.length() > 0){
+                    //mapper(emp.xml)에 search_date를 호출하기 위해
+                    //지정된 파라미터 객체(parameterType)인 Map을 생성해야 한다.
+                    Map<String, String> map = new HashMap<>(); //Map<키, 값> 만들 때는 HashMap으로
+                    map.put("start", start); //값은 start의 기억하고 있는 값
                     map.put("end", end);
 
                     SqlSession ss = factory.openSession();
-                     list = ss.selectList("emp.search_date", map);
+                    list = ss.selectList("emp.search_date", map);
+
                     ss.close();
                     viewTable(list);
-                } else {
+                }else
                     JOptionPane.showMessageDialog(EmpFrame.this, "날짜를 모두 입력하세요");
-                }
+
             }
         });
 
         jTable1.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                //테이블에서 더블 클릭을 했는지 확인
                 int cnt = e.getClickCount();
-                if(cnt ==2){
-                    //Jtable에 선택된 행, index가져 오기
+                if(cnt == 2){
+                    //JTable에서 선택된 행, index를 얻어내자.
                     int i = jTable1.getSelectedRow();
-                    setTitle(String.valueOf(i));
+                    //setTitle(String.valueOf(i));
+                    //위의 i는 List<EmpVO>에 접근하기 위한 index값이다.
+                    EmpVO vo = list.get(i); //EmpVO값을 얻어낼 수 있다. list가 멤버변수니까 바로 얻어낼 수 있는 것이다.
 
-                    EmpVO vo =list.get(i);
-//                    MyDialog md = new MyDialog(EmpFrame.this, vo);
+                    //setTitle(vo.getEname()); //클릭 시 제목에 사원이름이 뜬다.
+                    //modal: true로 하면, 창이 띄워진 상태에서 다른 것을 클릭해도 클릭 안됨
+                    new MyDialog(EmpFrame.this, false, vo); //vo를 준 이유? dialog는 부모창을 줘야한다. 거기에 찍어야되는 정보들이 vo이므로 vo값들이 찍히게끔 하기 위함. 작은 창은 아직 만들지 않음 netbeans에 가서 만들자.
+
                 }
             }
         });
 
-    }
 
+
+    }
 
     private void allData(){
-       SqlSession ss = factory.openSession();
-       list = ss.selectList("emp.all_data");
-        viewTable(list);
-        ss.close();
+        SqlSession ss = factory.openSession();
+        list = ss.selectList("all_data");
+        viewTable(list); //인자로 list를 주면, 해당되는 함수는 list의 자료형을 그대로 받으면 된다.
+        ss.close(); //**닫아주는거 잊지 말기
     }
 
-    public void viewTable( List<EmpVO> list){
-        //받은 list를 2차원 배열로 변환한 후 JTable에 표현 하자
-        data = new String[list.size()][c_name.length];
+    private void viewTable(List<EmpVO> list){
+        //받은 list를 2차원 배열로 변환한 후 JTable로 표현하자
+        data = new String[list.size()][c_name.length]; //list의 길이만큼 c_name에 대한 1차원 배열을 만들면 되는구나..
         int i =0;
-        for (EmpVO vo : list){
-            data[i][0] = vo.getEmpno(); // 사번
-            data[i][1] = vo.getEname(); // 이름
+        for(EmpVO vo : list){ //개선된 for문
+            data[i][0] = vo.getEmpno(); //사번
+            data[i][1] = vo.getEname(); //이름
             data[i][2] = vo.getHiredate(); //입사일
             data[i][3] = vo.getSal(); //급여
-            data[i][4] = vo.getDname(); // 부서이름
+            data[i][4] = vo.getDname(); //부서명
             i++;
         }
-         jTable1.setModel(new DefaultTableModel(data,c_name));
+        jTable1.setModel(new DefaultTableModel(data,c_name){
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        });
+
+
     }
 
     private void init(){
         try{
-            Reader r = Resources.getResourceAsReader("am/config/conf.xml");
+            Reader r = Resources.getResourceAsReader(
+                    "am/config/conf.xml");
             factory = new SqlSessionFactoryBuilder().build(r);
             r.close();
-            this.setTitle("작업준비 완료");
-
-
-        } catch (Exception e) {
+            this.setTitle("준비완료!"); //타이틀 이 보여진다면 위 sqlsession이 잘 연결되었다고 볼 수 있다.
+        } catch (Exception e){
             e.printStackTrace();
         }
-
     }
 
-
-
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
     @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         jPanel1 = new JPanel();
@@ -137,7 +158,7 @@ public class EmpFrame extends JFrame {
         jScrollPane1 = new JScrollPane();
         jTable1 = new JTable();
 
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        //setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         jLabel1.setText("시작일:");
         jPanel1.add(jLabel1);
@@ -156,17 +177,19 @@ public class EmpFrame extends JFrame {
 
         ImageIcon icon = new ImageIcon("src/images/search.png");
         Image img = icon.getImage().getScaledInstance(
-                    21,21,Image.SCALE_SMOOTH);
+                21,21,Image.SCALE_SMOOTH);
         jButton1.setIcon(new ImageIcon(img));
-
         jButton1.setPreferredSize(new Dimension(21, 21));
-        jButton1.setBorder(BorderFactory.createLineBorder(Color.green, 2));
+
+        jButton1.setBorder(new BevelBorder(BevelBorder.RAISED)); //튀어나온 버튼
+        //jButton1.setBorder(new BevelBorder(BevelBorder.RAISED)); //튀어나온 버튼
+        jButton1.setBorder(BorderFactory.createLineBorder(Color.GREEN, 2));
         jPanel1.add(jButton1);
 
         getContentPane().add(jPanel1, BorderLayout.PAGE_START);
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            data,c_name ));
+                data,c_name ));
         jScrollPane1.setViewportView(jTable1);
 
         getContentPane().add(jScrollPane1, BorderLayout.CENTER);
@@ -209,5 +232,18 @@ public class EmpFrame extends JFrame {
     private JTable jTable1;
     private JTextField jTextField1;
     private JTextField jTextField2;
+
+    public void updateData(EmpVO vo) {
+
+        SqlSession ss = factory.openSession();
+
+        int cnt = ss.update("emp.edit", vo);
+        if(cnt > 0){
+            ss.commit();
+        } else {
+            ss.rollback();
+        }
+        ss.close();
+    }
     // End of variables declaration//GEN-END:variables
 }
