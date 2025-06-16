@@ -2,13 +2,15 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.mybatis.example.BlogMapper">
-    <select id="all" resultType="emp.vo.EmpVO">
+<mapper namespace="emp">
+
+    <select id="all_data" resultType="am.vo.EmpVO">
         select * from emp e INNER JOIN dept d ON e.deptno = d.deptno
     </select>
 
-    <select id="search_date" resultType="emp.vo.EmpVO" parameterType="Map">
+    <select id="search_date" resultType="am.vo.EmpVO" parameterType="Map">
         select * from emp e INNER JOIN dept d ON e.deptno = d.deptno
-        WHERE hiredate &gt;=#{start} and hiredate &lt;= #{end}
+        WHERE hiredate &gt;= #{start} and hiredate &lt;= #{end}
     </select>
+
 </mapper>

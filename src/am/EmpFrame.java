@@ -9,29 +9,29 @@ import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
-import org.apache.ibatis.session.defaults.DefaultSqlSessionFactory;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.Reader;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
  * @author 쌍용교육센터
  */
 public class EmpFrame extends JFrame {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(EmpFrame.class.getName());
 
     String[][] data;
     String[] c_name = {"사번", "이름", "입사일", "급여", "부서명"};
+
     SqlSessionFactory factory;
+    List<EmpVO> list;
 
 
     public EmpFrame() {
@@ -53,7 +53,32 @@ public class EmpFrame extends JFrame {
                 String start = jTextField1.getText().trim();
                 String end = jTextField2.getText().trim();
                 if (start.length()>0 && end.length()>0){
-                    //mapper에 search_date를 호출하기 위해 지정된 파라미터 객체(parameterType
+                    //mapper에 search_date를 호출하기 위해 지정된 파라미터 객체(parameterType)인 map을 생성
+                    Map<String, String> map = new HashMap<>();
+                    map.put("start", start);
+                    map.put("end", end);
+
+                    SqlSession ss = factory.openSession();
+                     list = ss.selectList("emp.search_date", map);
+                    ss.close();
+                    viewTable(list);
+                } else {
+                    JOptionPane.showMessageDialog(EmpFrame.this, "날짜를 모두 입력하세요");
+                }
+            }
+        });
+
+        jTable1.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int cnt = e.getClickCount();
+                if(cnt ==2){
+                    //Jtable에 선택된 행, index가져 오기
+                    int i = jTable1.getSelectedRow();
+                    setTitle(String.valueOf(i));
+
+                    EmpVO vo =list.get(i);
+//                    MyDialog md = new MyDialog(EmpFrame.this, vo);
                 }
             }
         });
@@ -62,8 +87,8 @@ public class EmpFrame extends JFrame {
 
 
     private void allData(){
-        SqlSession ss = factory.openSession();
-        List<EmpVO> list = ss.selectList("emp.all");
+       SqlSession ss = factory.openSession();
+       list = ss.selectList("emp.all_data");
         viewTable(list);
         ss.close();
     }
@@ -82,13 +107,14 @@ public class EmpFrame extends JFrame {
         }
          jTable1.setModel(new DefaultTableModel(data,c_name));
     }
-    
+
     private void init(){
         try{
             Reader r = Resources.getResourceAsReader("am/config/conf.xml");
             factory = new SqlSessionFactoryBuilder().build(r);
             r.close();
             this.setTitle("작업준비 완료");
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -155,7 +181,7 @@ public class EmpFrame extends JFrame {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
