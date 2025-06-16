@@ -6,6 +6,16 @@ public class EmpVO {
     private String job;
     private String hiredate;
     private String sal;
+    private String comm;
+    private String dname;
+
+    public String getComm() {
+        return comm;
+    }
+
+    public void setComm(String comm) {
+        this.comm = comm;
+    }
 
     public String getDname() {
         return dname;
@@ -55,5 +65,5 @@ public class EmpVO {
         this.empno = empno;
     }
 
-    private String dname;
+
 }
