@@ -37,8 +37,27 @@ public class EmpFrame extends JFrame {
     List<DeptVO> depts;
     int i;
 
+    JMenuBar bar;
+    JMenu file_M;
+    JMenuItem add_item, search_item, exit_item;
+
     public EmpFrame() {
         initComponents(); // 화면 구성
+
+        //메뉴 작업
+        bar = new JMenuBar();
+        file_M = new JMenu("파일");
+        add_item = new JMenuItem("추가");
+        search_item = new JMenuItem("검색");
+        exit_item = new JMenuItem("종료");
+
+        file_M.add(add_item);
+        file_M.add(search_item);
+        file_M.addSeparator(); //구분선
+        file_M.add(exit_item);
+
+        bar.add(file_M);
+        this.setJMenuBar(bar);
 
         init(); // DB연결
         allData(); // 적용된 data를 보여줌
@@ -101,6 +120,20 @@ public class EmpFrame extends JFrame {
 //                    setTitle(vo.getEname());
                     new MyDialog(EmpFrame.this,false, vo);
                 }
+            }
+        });
+
+        add_item.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new MyDialog(EmpFrame.this,false, "추가");
+            }
+        });
+
+        search_item.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new MyDialog(EmpFrame.this,false, "검색");
             }
         });
     } // 생성자 끝
@@ -242,6 +275,14 @@ public class EmpFrame extends JFrame {
             viewTable(list);
         } else
             ss.rollback();
+        ss.close();
+    }
+
+    public void search(EmpVO vo){
+        SqlSession ss = factory.openSession();
+        list = ss.selectList("emp.search", vo);
+        viewTable(list);
+
         ss.close();
     }
     // End of variables declaration//GEN-END:variables

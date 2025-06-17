@@ -8,6 +8,18 @@ public class EmpVO {
     private String sal;
     private String comm;
     private String dname;
+    private String deptno;
+
+
+    public String getDeptno() {
+        return deptno;
+    }
+
+    public void setDeptno(String deptno) {
+        this.deptno = deptno;
+    }
+
+
 
     public String getComm() {
         return comm;

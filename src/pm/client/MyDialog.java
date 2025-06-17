@@ -13,13 +13,61 @@ import java.awt.event.ActionListener;
  * @author 100
  */
 public class MyDialog extends javax.swing.JDialog {
-
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MyDialog.class.getName());
-
-    /**
-     * Creates new form am.MyDialog
-     */
     EmpFrame parent;
+
+    public MyDialog(EmpFrame parent, boolean modal, String str){
+        super(parent, modal);
+        this.parent = parent;
+        this.setTitle(str);
+
+        initComponents(); // 화면 구성
+        jButton1.setText(str);
+        empno_tf.setEditable(true); //활성화
+
+        //이벤트 감시자 등록
+        jButton1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //추가모드에서 클릭 했는지? 아니면 검색 모드에서 클릭 했는지?
+                String msg = e.getActionCommand(); // Jbutton1의 값을 가져 온다
+//                System.out.println(msg);
+                //검색 기능
+                if (msg.equalsIgnoreCase("검색")){
+                    //사용자가 입력한 값이 무엇인지 모르기 때문에 정보를 모두 가져온다.
+                    String empno = empno_tf.getText().trim();
+                    String ename = ename_tf.getText().trim();
+                    String job = job_tf.getText().trim();
+                    String hdate = hdate_tf.getText().trim();
+                    String sal = sal_tf.getText().trim();
+                    String dname = dname_tf.getText().trim();
+
+                    EmpVO vo = new EmpVO();
+                    if(empno.length() > 0){
+                        vo.setEmpno(empno);
+                    }
+                    if(ename.length() > 0){
+                        vo.setEname(ename);
+                    }
+                    if(job.length() > 0){
+                        vo.setJob(job);
+                    }
+                    if(hdate.length() > 0){
+                        vo.setHiredate(hdate);
+                    }
+                    if(sal.length() > 0){
+                        vo.setSal(sal);
+                    }
+                    if(dname.length() > 0){
+                        vo.setDname(dname);
+                    }
+                    parent.search(vo);
+                }// 바깥쪽 if문 종료
+            }
+        });
+
+        this.setVisible(true);
+    }
+
     public MyDialog(EmpFrame parent, boolean modal, EmpVO vo) {
         super(parent, modal);
         this.parent = parent;

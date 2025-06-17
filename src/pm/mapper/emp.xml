@@ -18,7 +18,39 @@
         <foreach collection="dept_list"  item="dno" open="(" close=")" separator="," >
             #{dno}
         </foreach>
-
     </select>
+
+    <select id="search" resultType="pm.vo.EmpVO" parameterType="pm.vo.EmpVO">
+        select e.empno, e.ename, e.hiredate, e.sal, d.dname From emp e INNER JOIN dept d on e.deptno = d.deptno
+
+        <trim prefix="WHERE" suffixOverrides="and">
+            <if test="empno != null">
+                e.empno = #{empno} and
+            </if>
+
+            <if test="ename != null">
+                e.ename like concat ('%', #{ename}, '%') and
+            </if>
+
+            <if test="job != null">
+                e.job like concat ('%', #{job}, '%') and
+            </if>
+
+            <if test="hiredate != null">
+                e.hiredate like concat ('%', #{hiredate}, '%') and
+            </if>
+
+            <if test="sal != null">
+                e.sal &gt;= #{sal} and
+            </if>
+
+            <if test="deptno != null">
+                d.deptno = #{deptno}
+            </if>
+
+        </trim>
+    </select>
+
+
 
 </mapper>
